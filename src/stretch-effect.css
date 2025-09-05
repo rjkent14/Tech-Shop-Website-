@@ -1,0 +1,29 @@
+/* Stretch effect for main content on over-scroll */
+#main-scroll-wrapper.stretching #main-content {
+  transform: scaleY(1.04);
+  transition: transform 0.3s cubic-bezier(.4,2,.3,1);
+}
+
+#main-scroll-wrapper #main-content {
+  transition: transform 0.3s cubic-bezier(.4,2,.3,1);
+}
+
+/* Minimalist custom scrollbar for main content only (not container) */
+#main-content {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f3f5;
+}
+
+#main-content::-webkit-scrollbar {
+  width: 6px;
+  background: #f3f3f5;
+}
+
+#main-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+#main-content::-webkit-scrollbar-track {
+  background: #f3f3f5;
+}

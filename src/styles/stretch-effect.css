@@ -1,0 +1,63 @@
+@keyframes slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0.5; }
+}
+.animate-slide-out {
+  animation: slide-out 0.4s cubic-bezier(.4,2,.3,1);
+}
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0.5; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-in {
+  animation: slide-in 0.4s cubic-bezier(.4,2,.3,1);
+}
+/* Rubber band stretching effect for main content */
+#main-scroll-wrapper {
+  overscroll-behavior-y: contain;
+}
+
+#main-content {
+  will-change: transform;
+}
+
+#main-scroll-wrapper:active #main-content,
+#main-scroll-wrapper:focus #main-content {
+  transition: transform 0.3s cubic-bezier(.4,2,.3,1);
+}
+
+#main-scroll-wrapper.stretching #main-content {
+  transform: scaleY(1.04);
+}
+
+@media (max-width: 640px) {
+  #main-content {
+    transition: transform 0.3s cubic-bezier(.4,2,.3,1);
+  }
+}
+
+/* Minimalist custom scrollbar for main content only, no buttons */
+#main-content {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f3f5;
+}
+
+#main-content::-webkit-scrollbar {
+  width: 6px;
+  background: #f3f3f5;
+}
+
+#main-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+#main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#main-content::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
