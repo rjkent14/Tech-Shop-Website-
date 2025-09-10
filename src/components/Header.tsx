@@ -3,13 +3,16 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 
+
 interface HeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
   showBackButton?: boolean;
+  isLoggedIn: boolean;
+  onProfileClick: () => void;
 }
 
-export function Header({ cartItemsCount, onCartClick, showBackButton }: HeaderProps) {
+export function Header({ cartItemsCount, onCartClick, showBackButton, isLoggedIn, onProfileClick }: HeaderProps) {
   // showBackButton is now a prop
 
   return (
@@ -57,15 +60,27 @@ export function Header({ cartItemsCount, onCartClick, showBackButton }: HeaderPr
             />
           </div>
 
-          {/* User Account */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Login"
-            onClick={() => window.dispatchEvent(new CustomEvent("show-login"))}
-          >
-            <User className="w-6 h-6" />
-          </Button>
+
+          {/* User Account/Profile */}
+          {isLoggedIn ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Profile"
+              onClick={onProfileClick}
+            >
+              <User className="w-6 h-6" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Login"
+              onClick={() => window.dispatchEvent(new CustomEvent("show-login"))}
+            >
+              <User className="w-6 h-6" />
+            </Button>
+          )}
 
           {/* Shopping Cart */}
           <Button variant="ghost" size="icon" className="relative" onClick={onCartClick}>

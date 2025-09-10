@@ -5,6 +5,7 @@ import LoginPage from "./components/LoginPage";
 import SignUpPage from "./components/SignUpPage";
 import CheckoutPage from "./components/CheckoutPage";
 import { Header } from "./components/Header";
+import ProfileSection from "./components/ProfileSection";
 import { Hero } from "./components/Hero";
 import { ProductGrid } from "./components/ProductGrid";
 import { ShoppingCart, CartItem } from "./components/ShoppingCart";
@@ -90,32 +91,46 @@ export default function App() {
 	const [isCartOpen, setIsCartOpen] = useState(false);
 	const [cartClosing, setCartClosing] = useState(false);
 	const [route, setRoute] = useState("home");
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = useState(() => {
+		// Check localStorage for persisted login state
+		const stored = localStorage.getItem("isLoggedIn");
+		return stored === "true";
+	});
+	const [showProfile, setShowProfile] = useState(false);
 
-	// Listen for login/signup/checkout/home button events
-	React.useEffect(() => {
-		const showLogin = () => setRoute("login");
-		const showSignup = () => setRoute("signup");
-		const showHome = () => setRoute("home");
-		const showCheckout = () => {
-			if (isLoggedIn) {
-				setRoute("checkout");
-			} else {
-				setRoute("login");
-				toast.error("Please log in to proceed to checkout.");
-			}
-		};
-		window.addEventListener("show-login", showLogin);
-		window.addEventListener("show-signup", showSignup);
-		window.addEventListener("show-home", showHome);
-		window.addEventListener("show-checkout", showCheckout);
-		return () => {
-			window.removeEventListener("show-login", showLogin);
-			window.removeEventListener("show-signup", showSignup);
-			window.removeEventListener("show-home", showHome);
-			window.removeEventListener("show-checkout", showCheckout);
-		};
-	}, [isLoggedIn]);
+		// Listen for login/signup/checkout/home button events
+		React.useEffect(() => {
+			const showLogin = () => setRoute("login");
+			const showSignup = () => setRoute("signup");
+			const showHome = () => setRoute("home");
+			const showCheckout = () => {
+				if (isLoggedIn) {
+					setRoute("checkout");
+				} else {
+					setRoute("login");
+					toast.error("Please log in to proceed to checkout.");
+				}
+			};
+			window.addEventListener("show-login", showLogin);
+			window.addEventListener("show-signup", showSignup);
+			window.addEventListener("show-home", showHome);
+			window.addEventListener("show-checkout", showCheckout);
+			// Sync login state from localStorage on mount
+			const syncLogin = () => {
+				const stored = localStorage.getItem("isLoggedIn");
+				if (stored === "true" && !isLoggedIn) setIsLoggedIn(true);
+				if (stored !== "true" && isLoggedIn) setIsLoggedIn(false);
+			};
+			window.addEventListener("storage", syncLogin);
+			return () => {
+				window.removeEventListener("show-login", showLogin);
+				window.removeEventListener("show-signup", showSignup);
+				window.removeEventListener("show-home", showHome);
+				window.removeEventListener("show-checkout", showCheckout);
+				window.removeEventListener("storage", syncLogin);
+			};
+			// eslint-disable-next-line
+		}, [isLoggedIn]);
 
 	// Handle adding items to the cart
 	const addToCart = (product: Product) => {
@@ -159,15 +174,17 @@ export default function App() {
 		0
 	);
 
-	return (
-		<div className="min-h-screen flex flex-col">
-			<Header
-				cartItemsCount={cartItemsCount}
-				onCartClick={() => {
-					setIsCartOpen(true);
-					setCartClosing(false);
-				}}
-			/>
+		return (
+			<div className="min-h-screen flex flex-col">
+				<Header
+					cartItemsCount={cartItemsCount}
+					onCartClick={() => {
+						setIsCartOpen(true);
+						setCartClosing(false);
+					}}
+					isLoggedIn={isLoggedIn}
+					onProfileClick={() => setShowProfile(true)}
+				/>
 			<div
 				className="flex-1 overflow-y-auto"
 				id="main-scroll-wrapper"
@@ -177,15 +194,16 @@ export default function App() {
 					className="transition-transform duration-300"
 					id="main-content"
 				>
-					{route === "login" ? (
-						<LoginPage
-							onLogin={() => {
-								setIsLoggedIn(true);
-								setRoute("home");
-							}}
-						/>
-					) : route === "signup" ? (
-						<SignUpPage onLogin={() => setRoute("login")} />
+								{route === "login" ? (
+									<LoginPage
+										onLogin={() => {
+											setIsLoggedIn(true);
+											localStorage.setItem("isLoggedIn", "true");
+											setRoute("home");
+										}}
+									/>
+								) : route === "signup" ? (
+									<SignUpPage onLogin={() => setRoute("login")} />
 					) : route === "checkout" ? (
 						<CheckoutPage
 							cartItems={cartItems}
@@ -211,22 +229,33 @@ export default function App() {
 					)}
 				</main>
 			</div>
-			<Footer />
-			{(isCartOpen || cartClosing) && (
-				<ShoppingCart
-					isOpen={isCartOpen}
-					onClose={() => {
-						setCartClosing(true);
-						setTimeout(() => {
-							setIsCartOpen(false);
-							setCartClosing(false);
-						}, 400);
-					}}
-					cartItems={cartItems}
-					onUpdateQuantity={updateQuantity}
-					onRemoveItem={removeFromCart}
-				/>
-			)}
-		</div>
-	);
+					<Footer />
+					{(isCartOpen || cartClosing) && (
+						<ShoppingCart
+							isOpen={isCartOpen}
+							onClose={() => {
+								setCartClosing(true);
+								setTimeout(() => {
+									setIsCartOpen(false);
+									setCartClosing(false);
+								}, 400);
+							}}
+							cartItems={cartItems}
+							onUpdateQuantity={updateQuantity}
+							onRemoveItem={removeFromCart}
+						/>
+					)}
+							{isLoggedIn && showProfile && (
+								<ProfileSection
+									onClose={() => setShowProfile(false)}
+									onLogout={() => {
+										setIsLoggedIn(false);
+										localStorage.setItem("isLoggedIn", "false");
+										setShowProfile(false);
+										setRoute("home");
+									}}
+								/>
+							)}
+				</div>
+			);
 }
