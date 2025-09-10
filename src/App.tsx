@@ -86,17 +86,34 @@ const mockProducts: Product[] = [
 	},
 ];
 
-export default function App() {
-	const [cartItems, setCartItems] = useState([]);
-	const [isCartOpen, setIsCartOpen] = useState(false);
-	const [cartClosing, setCartClosing] = useState(false);
-	const [route, setRoute] = useState("home");
-	const [isLoggedIn, setIsLoggedIn] = useState(() => {
-		// Check localStorage for persisted login state
-		const stored = localStorage.getItem("isLoggedIn");
-		return stored === "true";
-	});
-	const [showProfile, setShowProfile] = useState(false);
+
+	export default function App() {
+		const [cartItems, setCartItems] = useState([]);
+		const [isCartOpen, setIsCartOpen] = useState(false);
+		const [cartClosing, setCartClosing] = useState(false);
+		const [route, setRoute] = useState("home");
+		const [isLoggedIn, setIsLoggedIn] = useState(() => {
+			// Check localStorage for persisted login state
+			const stored = localStorage.getItem("isLoggedIn");
+			return stored === "true";
+		});
+		const [showProfile, setShowProfile] = useState(false);
+		const [searchTerm, setSearchTerm] = useState("");
+
+		// Filter products by search term
+		const filteredProducts = searchTerm.trim()
+			? mockProducts.filter((p) =>
+					p.name.toLowerCase().includes(searchTerm.toLowerCase())
+				)
+			: mockProducts;
+
+		// Count by category for filtered products
+		const productTypeCount = filteredProducts.length > 0 && searchTerm.trim()
+			? filteredProducts.reduce((acc, p) => {
+					acc[p.category] = (acc[p.category] || 0) + 1;
+					return acc;
+				}, {} as Record<string, number>)
+			: null;
 
 		// Listen for login/signup/checkout/home button events
 		React.useEffect(() => {
@@ -132,48 +149,49 @@ export default function App() {
 			// eslint-disable-next-line
 		}, [isLoggedIn]);
 
-	// Handle adding items to the cart
-	const addToCart = (product: Product) => {
-		setCartItems((prev) => {
-			const existingItem = prev.find((item) => item.id === product.id);
-			if (existingItem) {
-				return prev.map((item) =>
-					item.id === product.id
-						? { ...item, quantity: item.quantity + 1 }
-						: item
-				);
-			} else {
-				return [...prev, { ...product, quantity: 1 }];
+		// Handle adding items to the cart
+		const addToCart = (product: Product) => {
+			setCartItems((prev) => {
+				const existingItem = prev.find((item) => item.id === product.id);
+				if (existingItem) {
+					return prev.map((item) =>
+						item.id === product.id
+							? { ...item, quantity: item.quantity + 1 }
+							: item
+					);
+				} else {
+					return [...prev, { ...product, quantity: 1 }];
+				}
+			});
+			toast.success(`${product.name} added to cart!`);
+		};
+
+		// Handle updating cart item quantity
+		const updateQuantity = (productId: string, quantity: number) => {
+			if (quantity <= 0) {
+				removeFromCart(productId);
+				return;
 			}
-		});
-		toast.success(`${product.name} added to cart!`);
-	};
+			setCartItems((prev) =>
+				prev.map((item) =>
+					item.id === productId ? { ...item, quantity } : item
+				)
+			);
+		};
 
-	// Handle updating cart item quantity
-	const updateQuantity = (productId: string, quantity: number) => {
-		if (quantity <= 0) {
-			removeFromCart(productId);
-			return;
-		}
-		setCartItems((prev) =>
-			prev.map((item) =>
-				item.id === productId ? { ...item, quantity } : item
-			)
+		// Handle removing items from the cart
+		const removeFromCart = (productId: string) => {
+			setCartItems((prev) => prev.filter((item) => item.id !== productId));
+			toast.success("Item removed from cart");
+		};
+
+		// Calculate total cart items
+		const cartItemsCount = cartItems.reduce(
+			(sum, item) => sum + item.quantity,
+			0
 		);
-	};
 
-	// Handle removing items from the cart
-	const removeFromCart = (productId: string) => {
-		setCartItems((prev) => prev.filter((item) => item.id !== productId));
-		toast.success("Item removed from cart");
-	};
-
-	// Calculate total cart items
-	const cartItemsCount = cartItems.reduce(
-		(sum, item) => sum + item.quantity,
-		0
-	);
-
+		// --- JSX must be returned from the function body ---
 		return (
 			<div className="min-h-screen flex flex-col">
 				<Header
@@ -184,78 +202,81 @@ export default function App() {
 					}}
 					isLoggedIn={isLoggedIn}
 					onProfileClick={() => setShowProfile(true)}
+					searchTerm={searchTerm}
+					onSearchChange={setSearchTerm}
+					productTypeCount={productTypeCount}
 				/>
-			<div
-				className="flex-1 overflow-y-auto"
-				id="main-scroll-wrapper"
-				style={{ WebkitOverflowScrolling: "touch" }}
-			>
-				<main
-					className="transition-transform duration-300"
-					id="main-content"
+				<div
+					className="flex-1 overflow-y-auto"
+					id="main-scroll-wrapper"
+					style={{ WebkitOverflowScrolling: "touch" }}
 				>
-								{route === "login" ? (
-									<LoginPage
-										onLogin={() => {
-											setIsLoggedIn(true);
-											localStorage.setItem("isLoggedIn", "true");
-											setRoute("home");
-										}}
-									/>
-								) : route === "signup" ? (
-									<SignUpPage onLogin={() => setRoute("login")} />
-					) : route === "checkout" ? (
-						<CheckoutPage
-							cartItems={cartItems}
-							shippingFee={
-								cartItems.length > 0 &&
-								cartItems.reduce(
-									(sum, item) => sum + item.price * item.quantity,
-									0
-								) > 50
-									? 0
-									: 9.99
-							}
-							onBack={() => setRoute("home")}
-						/>
-					) : (
-						<>
-							<Hero />
-							<ProductGrid
-								products={mockProducts}
-								onAddToCart={addToCart}
+					<main
+						className="transition-transform duration-300"
+						id="main-content"
+					>
+						{route === "login" ? (
+							<LoginPage
+								onLogin={() => {
+									setIsLoggedIn(true);
+									localStorage.setItem("isLoggedIn", "true");
+									setRoute("home");
+								}}
 							/>
-						</>
-					)}
-				</main>
-			</div>
-					<Footer />
-					{(isCartOpen || cartClosing) && (
-						<ShoppingCart
-							isOpen={isCartOpen}
-							onClose={() => {
-								setCartClosing(true);
-								setTimeout(() => {
-									setIsCartOpen(false);
-									setCartClosing(false);
-								}, 400);
-							}}
-							cartItems={cartItems}
-							onUpdateQuantity={updateQuantity}
-							onRemoveItem={removeFromCart}
-						/>
-					)}
-							{isLoggedIn && showProfile && (
-								<ProfileSection
-									onClose={() => setShowProfile(false)}
-									onLogout={() => {
-										setIsLoggedIn(false);
-										localStorage.setItem("isLoggedIn", "false");
-										setShowProfile(false);
-										setRoute("home");
-									}}
+						) : route === "signup" ? (
+							<SignUpPage onLogin={() => setRoute("login")} />
+						) : route === "checkout" ? (
+							<CheckoutPage
+								cartItems={cartItems}
+								shippingFee={
+									cartItems.length > 0 &&
+									cartItems.reduce(
+										(sum, item) => sum + item.price * item.quantity,
+										0
+									) > 50
+										? 0
+										: 9.99
+								}
+								onBack={() => setRoute("home")}
+							/>
+						) : (
+							<>
+								<Hero />
+								<ProductGrid
+									products={filteredProducts}
+									onAddToCart={addToCart}
 								/>
-							)}
+							</>
+						)}
+					</main>
 				</div>
-			);
+				<Footer />
+				{(isCartOpen || cartClosing) && (
+					<ShoppingCart
+						isOpen={isCartOpen}
+						onClose={() => {
+							setCartClosing(true);
+							setTimeout(() => {
+								setIsCartOpen(false);
+								setCartClosing(false);
+							}, 400);
+						}}
+						cartItems={cartItems}
+						onUpdateQuantity={updateQuantity}
+						onRemoveItem={removeFromCart}
+					/>
+				)}
+				{isLoggedIn && showProfile && (
+					<ProfileSection
+						onClose={() => setShowProfile(false)}
+						onLogout={() => {
+							setIsLoggedIn(false);
+							localStorage.setItem("isLoggedIn", "false");
+							setShowProfile(false);
+							setRoute("home");
+						}}
+					/>
+				)}
+			</div>
+		);
 }

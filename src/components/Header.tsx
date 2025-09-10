@@ -10,9 +10,12 @@ interface HeaderProps {
   showBackButton?: boolean;
   isLoggedIn: boolean;
   onProfileClick: () => void;
+  searchTerm: string;
+  onSearchChange: (val: string) => void;
+  productTypeCount?: Record<string, number> | null;
 }
 
-export function Header({ cartItemsCount, onCartClick, showBackButton, isLoggedIn, onProfileClick }: HeaderProps) {
+export function Header({ cartItemsCount, onCartClick, showBackButton, isLoggedIn, onProfileClick, searchTerm, onSearchChange, productTypeCount }: HeaderProps) {
   // showBackButton is now a prop
 
   return (
@@ -51,13 +54,27 @@ export function Header({ cartItemsCount, onCartClick, showBackButton, isLoggedIn
         </nav>
 
         {/* Search */}
+
         <div className="flex items-center space-x-4 ml-auto">
           <div className="relative hidden sm:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Search products..."
               className="pl-10 w-64"
+              value={searchTerm}
+              onChange={e => onSearchChange(e.target.value)}
             />
+            {/* Show product type and count if search matches */}
+            {productTypeCount && (
+              <div className="absolute left-0 mt-2 w-full bg-white bg-opacity-95 border border-gray-200 rounded shadow p-2 z-50 text-sm">
+                {Object.entries(productTypeCount).map(([type, count]) => (
+                  <div key={type} className="flex justify-between">
+                    <span className="font-medium text-gray-700">{type}</span>
+                    <span className="text-gray-500">{count} found</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
 
