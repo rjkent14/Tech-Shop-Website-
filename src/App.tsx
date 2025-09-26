@@ -14,81 +14,12 @@ import { Product } from "./components/ProductCard";
 import { toast } from "sonner";
 
 // Mock product data
-const mockProducts: Product[] = [
-	{
-		id: "1",
-		name: "MacBook Pro 16-inch with M3 Chip",
-		price: 2499.99,
-		originalPrice: 2699.99,
-		rating: 4.8,
-		reviewCount: 324,
-		image:
-			"https://images.unsplash.com/photo-1754928864131-21917af96dfd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBsYXB0b3AlMjBjb21wdXRlcnxlbnwxfHx8fDE3NTY4MjcwNjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Laptops",
-		inStock: true,
-	},
-	{
-		id: "2",
-		name: "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
-		price: 349.99,
-		originalPrice: 399.99,
-		rating: 4.7,
-		reviewCount: 892,
-		image:
-			"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzU2ODc3MDUxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Audio",
-		inStock: true,
-	},
-	{
-		id: "3",
-		name: "iPhone 15 Pro Max 256GB",
-		price: 1199.99,
-		rating: 4.6,
-		reviewCount: 567,
-		image:
-			"https://images.unsplash.com/photo-1675953935267-e039f13ddd79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbWFydHBob25lJTIwbW9iaWxlJTIwcGhvbmV8ZW58MXx8fHwxNzU2ODU3ODI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Phones",
-		inStock: true,
-	},
-	{
-		id: "4",
-		name: "Canon EOS R6 Mark II Mirrorless Camera",
-		price: 2499.99,
-		rating: 4.9,
-		reviewCount: 156,
-		image:
-			"https://images.unsplash.com/photo-1580050815120-3862a5833e0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwY2FtZXJhJTIwcGhvdG9ncmFpaHl8ZW58MXx8fHwxNzU2ODc0Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Cameras",
-		inStock: false,
-	},
-	{
-		id: "5",
-		name: "PlayStation 5 Console",
-		price: 499.99,
-		rating: 4.5,
-		reviewCount: 1203,
-		image:
-			"https://images.unsplash.com/photo-1655976796204-308e6f3deaa8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjb25zb2xlJTIwY29udHJvbGxlcnxlbnwxfHx8fDE3NTY4Nzg1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Gaming",
-		inStock: true,
-	},
-	{
-		id: "6",
-		name: "Apple Watch Series 9 GPS + Cellular 45mm",
-		price: 499.99,
-		originalPrice: 529.99,
-		rating: 4.4,
-		reviewCount: 789,
-		image:
-			"https://images.unsplash.com/photo-1716234479503-c460b87bdf98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbWFydCUyMHdhdGNoJTIwd2VhcmFibGV8ZW58MXx8fHwxNzU2ODYyNjIyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Wearables",
-		inStock: true,
-	},
-];
+
 
 
 	export default function App() {
-		const [cartItems, setCartItems] = useState([]);
+		const [cartItems, setCartItems] = useState<CartItem[]>([]);
+		const [products, setProducts] = useState<Product[]>([]);
 		const [isCartOpen, setIsCartOpen] = useState(false);
 		const [cartClosing, setCartClosing] = useState(false);
 		const [route, setRoute] = useState("home");
@@ -100,12 +31,33 @@ const mockProducts: Product[] = [
 		const [showProfile, setShowProfile] = useState(false);
 		const [searchTerm, setSearchTerm] = useState("");
 
+
+		React.useEffect(() => {
+  fetch("http://localhost:5000/api/products")
+    .then((res) => res.json())
+    .then((data) => {
+      setProducts(
+        data.map((row: any) => ({
+          id: String(row.product_id),
+          name: row.name,
+          price: row.price,
+          originalPrice: row.price * 1.05, // or null if you don’t track it
+          rating: row.rating,
+          reviewCount: row.review_count,
+          image: row.image, // already like `/Images/...`
+          category: row.category_id, // you can join with categories if needed
+          inStock: row.stock > 0,
+        }))
+      );
+    })
+    .catch((err) => console.error("Error fetching products:", err));
+}, []);
 		// Filter products by search term
 		const filteredProducts = searchTerm.trim()
-			? mockProducts.filter((p) =>
+			? products.filter((p) =>
 					p.name.toLowerCase().includes(searchTerm.toLowerCase())
 				)
-			: mockProducts;
+			: products;
 
 		// Count by category for filtered products
 		const productTypeCount = filteredProducts.length > 0 && searchTerm.trim()
@@ -149,6 +101,7 @@ const mockProducts: Product[] = [
 			// eslint-disable-next-line
 		}, [isLoggedIn]);
 
+		
 		// Handle adding items to the cart
 		const addToCart = (product: Product) => {
 			setCartItems((prev) => {
