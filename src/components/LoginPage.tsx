@@ -4,7 +4,7 @@ import "../styles/globals.css";
 export default function LoginPage({
   onLogin,
 }: {
-  onLogin?: (isAdmin?: boolean) => void; // <-- FIXED: allow one boolean arg
+  onLogin?: (isAdmin: boolean, userId: string) => void; // <-- FIXED: allow one boolean arg
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,7 +37,7 @@ export default function LoginPage({
 
       // ✅ Now TypeScript is happy
       if (onLogin) {
-        onLogin(data.user.isAdmin);
+        onLogin(data.user.isAdmin, data.user.id); // 👈 send both
       }
     } catch (err) {
       console.error("Login request error:", err);

@@ -62,7 +62,7 @@
             "vite": "6.3.5"
       },
       "scripts": {
-           "dev": "concurrently \"npm run db:reset\" \"npm run server\" \"vite\"",
+             "dev": "concurrently \"npm run server\" \"vite\"",
             "server": "nodemon src/api/server.js",
             "db:reset": "node src/database/query.js",
             "build": "vite build",

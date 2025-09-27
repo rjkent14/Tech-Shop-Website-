@@ -34,7 +34,7 @@ import AdminPage from "./pages/AdminPage";
 });
 		const [showProfile, setShowProfile] = useState(false);
 		const [searchTerm, setSearchTerm] = useState("");
-
+			
 
 		React.useEffect(() => {
   fetch("http://localhost:5000/api/products")
@@ -107,40 +107,52 @@ import AdminPage from "./pages/AdminPage";
 
 		
 		// Handle adding items to the cart
-		const addToCart = (product: Product) => {
-			setCartItems((prev) => {
-				const existingItem = prev.find((item) => item.id === product.id);
-				if (existingItem) {
-					return prev.map((item) =>
-						item.id === product.id
-							? { ...item, quantity: item.quantity + 1 }
-							: item
-					);
-				} else {
-					return [...prev, { ...product, quantity: 1 }];
-				}
-			});
-			toast.success(`${product.name} added to cart!`);
-		};
+const addToCart = (product: Product) => {
+  setCartItems((prev) => {
+    const existingItem = prev.find((item) => item.product_id === Number(product.id));
+    if (existingItem) {
+      return prev.map((item) =>
+        item.product_id === Number(product.id)
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    } else {
+      return [
+        ...prev,
+        {
+          product_id: Number(product.id), // ✅ backend-ready
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          image: product.image,
+          category: product.category,
+          inStock: product.inStock,
+          quantity: 1,
+        },
+      ];
+    }
+  });
+  toast.success(`${product.name} added to cart!`);
+};
 
-		// Handle updating cart item quantity
-		const updateQuantity = (productId: string, quantity: number) => {
-			if (quantity <= 0) {
-				removeFromCart(productId);
-				return;
-			}
-			setCartItems((prev) =>
-				prev.map((item) =>
-					item.id === productId ? { ...item, quantity } : item
-				)
-			);
-		};
+const updateQuantity = (productId: number, quantity: number) => {
+  if (quantity <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+  setCartItems((prev) =>
+    prev.map((item) =>
+      item.product_id === productId ? { ...item, quantity } : item
+    )
+  );
+};
 
-		// Handle removing items from the cart
-		const removeFromCart = (productId: string) => {
-			setCartItems((prev) => prev.filter((item) => item.id !== productId));
-			toast.success("Item removed from cart");
-		};
+const removeFromCart = (productId: number) => {
+  setCartItems((prev) => prev.filter((item) => item.product_id !== productId));
+  toast.success("Item removed from cart");
+};
 
 		// Calculate total cart items
 		const cartItemsCount = cartItems.reduce(
@@ -174,11 +186,12 @@ import AdminPage from "./pages/AdminPage";
 					>
 						{route === "login" ? (
 <LoginPage
-  onLogin={(isAdmin?: boolean) => {
+  onLogin={(isAdmin: boolean, userId: string) => {
     setIsLoggedIn(true);
     localStorage.setItem("isLoggedIn", "true");
-	
     localStorage.setItem("isAdmin", isAdmin ? "true" : "false");
+    localStorage.setItem("userId", userId);
+
     setRoute(isAdmin ? "admin" : "home");
   }}
 />
@@ -235,9 +248,9 @@ import AdminPage from "./pages/AdminPage";
   onClose={() => setShowProfile(false)}
   onLogout={() => {
     setIsLoggedIn(false);
-    localStorage.removeItem("isLoggedIn"); 
-	
-    localStorage.removeItem("isAdmin"); // clear admin state
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("userId");
     setShowProfile(false);
     setRoute("home");
     toast.success("Logged out successfully!");

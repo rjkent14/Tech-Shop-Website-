@@ -6,16 +6,27 @@ import { Separator } from "./ui/separator";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Product } from "./ProductCard";
 import { toast } from "sonner";
-export interface CartItem extends Product {
+
+export interface CartItem {
+  product_id: number;   // ✅ match DB
+  name: string;
+  price: number;
+  originalPrice?: number;
+  rating?: number;
+  reviewCount?: number;
+  image: string;
+  category: string | number;
+  inStock: boolean;
   quantity: number;
 }
+
 
 interface ShoppingCartProps {
   isOpen: boolean;
   onClose: () => void;
   cartItems: CartItem[];
-  onUpdateQuantity: (productId: string, quantity: number) => void;
-  onRemoveItem: (productId: string) => void;
+onUpdateQuantity: (productId: number, quantity: number) => void;
+onRemoveItem: (productId: number) => void;
     onClearCart: () => void;   // 👈 add this
 }
 
@@ -60,7 +71,8 @@ export function ShoppingCart({
             ) : (
               <div className="space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-4 py-4">
+                <div key={item.product_id} className="flex gap-4 py-4">
+
                     <ImageWithFallback
                       src={item.image}
                       alt={item.name}
@@ -76,7 +88,7 @@ export function ShoppingCart({
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                           onClick={() => onUpdateQuantity(item.product_id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="w-3 h-3" />
@@ -86,7 +98,7 @@ export function ShoppingCart({
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                           onClick={() => onUpdateQuantity(item.product_id, item.quantity + 1)}
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
@@ -95,7 +107,7 @@ export function ShoppingCart({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => onRemoveItem(item.id)}
+                          onClick={() => onRemoveItem(item.product_id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -132,15 +144,18 @@ export function ShoppingCart({
   className="w-full mt-4"
   onClick={async () => {
     const userId = Number(localStorage.getItem("userId")); // stored at login
+    console.log("Placing order for userId:", userId, "with items:", cartItems); // 👈 debug
     try {
       const res = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
-          cartItems,
-          deliveryAddress: "Default address here",
-        }),
+  userId,
+  cartItems, // ✅ already has product_id
+  deliveryAddress: "Default address here",
+}),
+
+
       });
       const data = await res.json();
       if (res.ok) {
