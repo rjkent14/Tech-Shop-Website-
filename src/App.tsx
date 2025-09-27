@@ -12,7 +12,7 @@ import { ShoppingCart, CartItem } from "./components/ShoppingCart";
 import { Footer } from "./components/Footer";
 import { Product } from "./components/ProductCard";
 import { toast } from "sonner";
-
+import AdminPage from "./pages/AdminPage";
 // Mock product data
 
 
@@ -22,12 +22,16 @@ import { toast } from "sonner";
 		const [products, setProducts] = useState<Product[]>([]);
 		const [isCartOpen, setIsCartOpen] = useState(false);
 		const [cartClosing, setCartClosing] = useState(false);
-		const [route, setRoute] = useState("home");
+		const [route, setRoute] = useState(() => {
+  const storedLogin = localStorage.getItem("isLoggedIn") === "true";
+  const storedAdmin = localStorage.getItem("isAdmin") === "true";
+  if (storedLogin && storedAdmin) return "admin";
+  if (storedLogin) return "home";
+  return "login";
+});
 		const [isLoggedIn, setIsLoggedIn] = useState(() => {
-			// Check localStorage for persisted login state
-			const stored = localStorage.getItem("isLoggedIn");
-			return stored === "true";
-		});
+  return localStorage.getItem("isLoggedIn") === "true";
+});
 		const [showProfile, setShowProfile] = useState(false);
 		const [searchTerm, setSearchTerm] = useState("");
 
@@ -169,17 +173,19 @@ import { toast } from "sonner";
 						id="main-content"
 					>
 						{route === "login" ? (
-							<LoginPage
-								onLogin={() => {
-									setIsLoggedIn(true);
-									localStorage.setItem("isLoggedIn", "true");
-									setRoute("home");
-								}}
-							/>
-						) : route === "signup" ? (
-							<SignUpPage onLogin={() => setRoute("login")} />
-						) : route === "checkout" ? (
-							<CheckoutPage
+<LoginPage
+  onLogin={(isAdmin?: boolean) => {
+    setIsLoggedIn(true);
+    localStorage.setItem("isLoggedIn", "true");
+	
+    localStorage.setItem("isAdmin", isAdmin ? "true" : "false");
+    setRoute(isAdmin ? "admin" : "home");
+  }}
+/>
+) : route === "signup" ? (
+  <SignUpPage onLogin={() => setRoute("login")} />
+) : route === "checkout" ? (
+  <CheckoutPage
 								cartItems={cartItems}
 								shippingFee={
 									cartItems.length > 0 &&
@@ -192,17 +198,21 @@ import { toast } from "sonner";
 								}
 								onBack={() => setRoute("home")}
 							/>
-						) : (
-							<>
-								<Hero />
-								<ProductGrid
-									products={filteredProducts}
-									onAddToCart={addToCart}
-								/>
-							</>
-						)}
+
+) : route === "admin" ? (
+  <AdminPage />  
+) : (
+  <>
+    <Hero />
+    <ProductGrid
+      products={filteredProducts}
+      onAddToCart={addToCart}
+    />
+  </>
+)}
+
 					</main>
-				</div>
+				</div> 
 				<Footer />
 				{(isCartOpen || cartClosing) && (
 					<ShoppingCart
@@ -217,18 +227,23 @@ import { toast } from "sonner";
 						cartItems={cartItems}
 						onUpdateQuantity={updateQuantity}
 						onRemoveItem={removeFromCart}
+						  onClearCart={() => setCartItems([])}   // 👈 add this
 					/>
 				)}
 				{isLoggedIn && showProfile && (
 					<ProfileSection
-						onClose={() => setShowProfile(false)}
-						onLogout={() => {
-							setIsLoggedIn(false);
-							localStorage.setItem("isLoggedIn", "false");
-							setShowProfile(false);
-							setRoute("home");
-						}}
-					/>
+  onClose={() => setShowProfile(false)}
+  onLogout={() => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("isLoggedIn"); 
+	
+    localStorage.removeItem("isAdmin"); // clear admin state
+    setShowProfile(false);
+    setRoute("home");
+    toast.success("Logged out successfully!");
+  }}
+/>
+
 				)}
 			</div>
 		);

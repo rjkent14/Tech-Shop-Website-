@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Product } from "./ProductCard";
-
+import { toast } from "sonner";
 export interface CartItem extends Product {
   quantity: number;
 }
@@ -16,6 +16,7 @@ interface ShoppingCartProps {
   cartItems: CartItem[];
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
+    onClearCart: () => void;   // 👈 add this
 }
 
 export function ShoppingCart({ 
@@ -23,7 +24,8 @@ export function ShoppingCart({
   onClose, 
   cartItems, 
   onUpdateQuantity, 
-  onRemoveItem 
+  onRemoveItem,
+    onClearCart,   // 👈 here
 }: ShoppingCartProps) {
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 50 ? 0 : 9.99;
@@ -126,9 +128,38 @@ export function ShoppingCart({
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
-              <Button className="w-full mt-4" onClick={() => { window.dispatchEvent(new CustomEvent("show-checkout")); onClose(); }}>
-                Checkout
-              </Button>
+              <Button
+  className="w-full mt-4"
+  onClick={async () => {
+    const userId = Number(localStorage.getItem("userId")); // stored at login
+    try {
+      const res = await fetch("http://localhost:5000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          cartItems,
+          deliveryAddress: "Default address here",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Order placed successfully!");
+     onClearCart(); // 👈 call the parent’s clear function
+        window.dispatchEvent(new CustomEvent("show-checkout"));
+        onClose();
+      } else {
+        toast.error(data.error || "Failed to place order");
+      }
+    } catch (err) {
+      toast.error("Network error");
+      console.error(err);
+    }
+  }}
+>
+  Checkout
+</Button>
+
             </div>
           )}
         </div>

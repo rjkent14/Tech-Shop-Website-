@@ -57,10 +57,15 @@
             "@types/react": "^19.1.13",
             "@types/sql.js": "^1.4.9",
             "@vitejs/plugin-react-swc": "^3.10.2",
+            "concurrently": "^9.2.1",
+            "nodemon": "^3.1.10",
             "vite": "6.3.5"
       },
       "scripts": {
-            "dev": "vite",
-            "build": "vite build"
+           "dev": "concurrently \"npm run db:reset\" \"npm run server\" \"vite\"",
+            "server": "nodemon src/api/server.js",
+            "db:reset": "node src/database/query.js",
+            "build": "vite build",
+            "preview": "vite preview"
       }
 }
