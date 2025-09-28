@@ -25,16 +25,16 @@ export default function CheckoutPage({ cartItems, shippingFee, onBack }: Checkou
         <h2 className="text-xl font-bold text-center mb-2">Checkout</h2>
         <div className="space-y-4">
           {cartItems.map(item => (
-            <div key={item.id} className="flex gap-4 items-center border-b pb-2">
-              <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
-              <div className="flex-1">
-                <div className="font-medium">{item.name}</div>
-                <div className="text-xs text-muted-foreground">{item.category}</div>
-                <div className="text-sm">Qty: {item.quantity}</div>
-                <div className="font-semibold">${item.price.toFixed(2)}</div>
-              </div>
-            </div>
-          ))}
+  <div key={item.product_id} className="flex gap-4 items-center border-b pb-2">
+    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+    <div className="flex-1">
+      <div className="font-medium">{item.name}</div>
+      <div className="text-xs text-muted-foreground">{item.category}</div>
+      <div className="text-sm">Qty: {item.quantity}</div>
+      <div className="font-semibold">${item.price.toFixed(2)}</div>
+    </div>
+  </div>
+))}
         </div>
         <div className="flex flex-col gap-2 mt-2">
           <div className="flex justify-between">

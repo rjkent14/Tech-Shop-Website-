@@ -13,9 +13,6 @@ import { Footer } from "./components/Footer";
 import { Product } from "./components/ProductCard";
 import { toast } from "sonner";
 import AdminPage from "./pages/AdminPage";
-// Mock product data
-
-
 
 	export default function App() {
 		const [cartItems, setCartItems] = useState<CartItem[]>([]);
