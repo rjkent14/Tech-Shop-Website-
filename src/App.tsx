@@ -12,100 +12,56 @@ import { ShoppingCart, CartItem } from "./components/ShoppingCart";
 import { Footer } from "./components/Footer";
 import { Product } from "./components/ProductCard";
 import { toast } from "sonner";
-
+import AdminPage from "./pages/AdminPage";
 // Mock product data
-const mockProducts: Product[] = [
-	{
-		id: "1",
-		name: "MacBook Pro 16-inch with M3 Chip",
-		price: 2499.99,
-		originalPrice: 2699.99,
-		rating: 4.8,
-		reviewCount: 324,
-		image:
-			"https://images.unsplash.com/photo-1754928864131-21917af96dfd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBsYXB0b3AlMjBjb21wdXRlcnxlbnwxfHx8fDE3NTY4MjcwNjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Laptops",
-		inStock: true,
-	},
-	{
-		id: "2",
-		name: "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
-		price: 349.99,
-		originalPrice: 399.99,
-		rating: 4.7,
-		reviewCount: 892,
-		image:
-			"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzU2ODc3MDUxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Audio",
-		inStock: true,
-	},
-	{
-		id: "3",
-		name: "iPhone 15 Pro Max 256GB",
-		price: 1199.99,
-		rating: 4.6,
-		reviewCount: 567,
-		image:
-			"https://images.unsplash.com/photo-1675953935267-e039f13ddd79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbWFydHBob25lJTIwbW9iaWxlJTIwcGhvbmV8ZW58MXx8fHwxNzU2ODU3ODI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Phones",
-		inStock: true,
-	},
-	{
-		id: "4",
-		name: "Canon EOS R6 Mark II Mirrorless Camera",
-		price: 2499.99,
-		rating: 4.9,
-		reviewCount: 156,
-		image:
-			"https://images.unsplash.com/photo-1580050815120-3862a5833e0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwY2FtZXJhJTIwcGhvdG9ncmFpaHl8ZW58MXx8fHwxNzU2ODc0Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Cameras",
-		inStock: false,
-	},
-	{
-		id: "5",
-		name: "PlayStation 5 Console",
-		price: 499.99,
-		rating: 4.5,
-		reviewCount: 1203,
-		image:
-			"https://images.unsplash.com/photo-1655976796204-308e6f3deaa8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBjb25zb2xlJTIwY29udHJvbGxlcnxlbnwxfHx8fDE3NTY4Nzg1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Gaming",
-		inStock: true,
-	},
-	{
-		id: "6",
-		name: "Apple Watch Series 9 GPS + Cellular 45mm",
-		price: 499.99,
-		originalPrice: 529.99,
-		rating: 4.4,
-		reviewCount: 789,
-		image:
-			"https://images.unsplash.com/photo-1716234479503-c460b87bdf98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbWFydCUyMHdhdGNoJTIwd2VhcmFibGV8ZW58MXx8fHwxNzU2ODYyNjIyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-		category: "Wearables",
-		inStock: true,
-	},
-];
+
 
 
 	export default function App() {
-		const [cartItems, setCartItems] = useState([]);
+		const [cartItems, setCartItems] = useState<CartItem[]>([]);
+		const [products, setProducts] = useState<Product[]>([]);
 		const [isCartOpen, setIsCartOpen] = useState(false);
 		const [cartClosing, setCartClosing] = useState(false);
-		const [route, setRoute] = useState("home");
+		const [route, setRoute] = useState(() => {
+  const storedLogin = localStorage.getItem("isLoggedIn") === "true";
+  const storedAdmin = localStorage.getItem("isAdmin") === "true";
+  if (storedLogin && storedAdmin) return "admin";
+  if (storedLogin) return "home";
+  return "login";
+});
 		const [isLoggedIn, setIsLoggedIn] = useState(() => {
-			// Check localStorage for persisted login state
-			const stored = localStorage.getItem("isLoggedIn");
-			return stored === "true";
-		});
+  return localStorage.getItem("isLoggedIn") === "true";
+});
 		const [showProfile, setShowProfile] = useState(false);
 		const [searchTerm, setSearchTerm] = useState("");
+			
 
+		React.useEffect(() => {
+  fetch("http://localhost:5000/api/products")
+    .then((res) => res.json())
+    .then((data) => {
+      setProducts(
+        data.map((row: any) => ({
+          id: String(row.product_id),
+          name: row.name,
+          price: row.price,
+          originalPrice: row.price * 1.05, // or null if you don’t track it
+          rating: row.rating,
+          reviewCount: row.review_count,
+          image: row.image, // already like `/Images/...`
+          category: row.category_id, // you can join with categories if needed
+          inStock: row.stock > 0,
+        }))
+      );
+    })
+    .catch((err) => console.error("Error fetching products:", err));
+}, []);
 		// Filter products by search term
 		const filteredProducts = searchTerm.trim()
-			? mockProducts.filter((p) =>
+			? products.filter((p) =>
 					p.name.toLowerCase().includes(searchTerm.toLowerCase())
 				)
-			: mockProducts;
+			: products;
 
 		// Count by category for filtered products
 		const productTypeCount = filteredProducts.length > 0 && searchTerm.trim()
@@ -149,41 +105,54 @@ const mockProducts: Product[] = [
 			// eslint-disable-next-line
 		}, [isLoggedIn]);
 
+		
 		// Handle adding items to the cart
-		const addToCart = (product: Product) => {
-			setCartItems((prev) => {
-				const existingItem = prev.find((item) => item.id === product.id);
-				if (existingItem) {
-					return prev.map((item) =>
-						item.id === product.id
-							? { ...item, quantity: item.quantity + 1 }
-							: item
-					);
-				} else {
-					return [...prev, { ...product, quantity: 1 }];
-				}
-			});
-			toast.success(`${product.name} added to cart!`);
-		};
+const addToCart = (product: Product) => {
+  setCartItems((prev) => {
+    const existingItem = prev.find((item) => item.product_id === Number(product.id));
+    if (existingItem) {
+      return prev.map((item) =>
+        item.product_id === Number(product.id)
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    } else {
+      return [
+        ...prev,
+        {
+          product_id: Number(product.id), // ✅ backend-ready
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          image: product.image,
+          category: product.category,
+          inStock: product.inStock,
+          quantity: 1,
+        },
+      ];
+    }
+  });
+  toast.success(`${product.name} added to cart!`);
+};
 
-		// Handle updating cart item quantity
-		const updateQuantity = (productId: string, quantity: number) => {
-			if (quantity <= 0) {
-				removeFromCart(productId);
-				return;
-			}
-			setCartItems((prev) =>
-				prev.map((item) =>
-					item.id === productId ? { ...item, quantity } : item
-				)
-			);
-		};
+const updateQuantity = (productId: number, quantity: number) => {
+  if (quantity <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+  setCartItems((prev) =>
+    prev.map((item) =>
+      item.product_id === productId ? { ...item, quantity } : item
+    )
+  );
+};
 
-		// Handle removing items from the cart
-		const removeFromCart = (productId: string) => {
-			setCartItems((prev) => prev.filter((item) => item.id !== productId));
-			toast.success("Item removed from cart");
-		};
+const removeFromCart = (productId: number) => {
+  setCartItems((prev) => prev.filter((item) => item.product_id !== productId));
+  toast.success("Item removed from cart");
+};
 
 		// Calculate total cart items
 		const cartItemsCount = cartItems.reduce(
@@ -216,17 +185,20 @@ const mockProducts: Product[] = [
 						id="main-content"
 					>
 						{route === "login" ? (
-							<LoginPage
-								onLogin={() => {
-									setIsLoggedIn(true);
-									localStorage.setItem("isLoggedIn", "true");
-									setRoute("home");
-								}}
-							/>
-						) : route === "signup" ? (
-							<SignUpPage onLogin={() => setRoute("login")} />
-						) : route === "checkout" ? (
-							<CheckoutPage
+<LoginPage
+  onLogin={(isAdmin: boolean, userId: string) => {
+    setIsLoggedIn(true);
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("isAdmin", isAdmin ? "true" : "false");
+    localStorage.setItem("userId", userId);
+
+    setRoute(isAdmin ? "admin" : "home");
+  }}
+/>
+) : route === "signup" ? (
+  <SignUpPage onLogin={() => setRoute("login")} />
+) : route === "checkout" ? (
+  <CheckoutPage
 								cartItems={cartItems}
 								shippingFee={
 									cartItems.length > 0 &&
@@ -239,17 +211,21 @@ const mockProducts: Product[] = [
 								}
 								onBack={() => setRoute("home")}
 							/>
-						) : (
-							<>
-								<Hero />
-								<ProductGrid
-									products={filteredProducts}
-									onAddToCart={addToCart}
-								/>
-							</>
-						)}
+
+) : route === "admin" ? (
+  <AdminPage />  
+) : (
+  <>
+    <Hero />
+    <ProductGrid
+      products={filteredProducts}
+      onAddToCart={addToCart}
+    />
+  </>
+)}
+
 					</main>
-				</div>
+				</div> 
 				<Footer />
 				{(isCartOpen || cartClosing) && (
 					<ShoppingCart
@@ -264,18 +240,23 @@ const mockProducts: Product[] = [
 						cartItems={cartItems}
 						onUpdateQuantity={updateQuantity}
 						onRemoveItem={removeFromCart}
+						  onClearCart={() => setCartItems([])}   // 👈 add this
 					/>
 				)}
 				{isLoggedIn && showProfile && (
 					<ProfileSection
-						onClose={() => setShowProfile(false)}
-						onLogout={() => {
-							setIsLoggedIn(false);
-							localStorage.setItem("isLoggedIn", "false");
-							setShowProfile(false);
-							setRoute("home");
-						}}
-					/>
+  onClose={() => setShowProfile(false)}
+  onLogout={() => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("userId");
+    setShowProfile(false);
+    setRoute("home");
+    toast.success("Logged out successfully!");
+  }}
+/>
+
 				)}
 			</div>
 		);

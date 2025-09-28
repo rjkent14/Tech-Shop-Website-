@@ -6,16 +6,38 @@ export default function SignUpPage({ onLogin }: { onLogin?: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setError("Please enter both email and password.");
+  const handleSubmit = async (e: any) => {
+  e.preventDefault();
+
+  if (!email || !password) {
+    setError("Please enter both email and password.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Registration failed");
       return;
     }
+
     setError("");
-    alert("Account created for " + email);
+    alert(`Account created for ${data.user.email}`);
+
+    // After signup, send them back to login
     if (onLogin) onLogin();
-  };
+  } catch (err) {
+    console.error("Register request error:", err);
+    setError("Unable to connect to server.");
+  }
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background animate-fade-in">
