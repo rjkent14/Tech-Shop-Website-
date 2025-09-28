@@ -1,6 +1,6 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
-
+const fs = require("fs"); // ✅ missing import
 // Path to database file
 const DB_FILE = path.join(__dirname, "../../public/sql.db");
 
@@ -105,8 +105,52 @@ INSERT INTO products (category_id, name, price, stock, image, review_count, rati
 ((SELECT category_id FROM categories WHERE name = 'Cameras'), 'Canon EOS R6 Mark II Mirrorless Camera', 2499.99, 0, '/Images/canon-eos-r6.jpg', 156, 4.9),
 ((SELECT category_id FROM categories WHERE name = 'Gaming'), 'PlayStation 5 Console', 499.99, 1, '/Images/ps5-console.jpg', 1203, 4.5),
 ((SELECT category_id FROM categories WHERE name = 'Wearables'), 'Apple Watch Series 9 GPS + Cellular 45mm', 499.99, 1, '/Images/apple-watch-series9.jpg', 789, 4.4);
-`;
 
+-- Users
+INSERT OR IGNORE INTO users (email, password, name)
+VALUES 
+('admin@example.com', 'adminpass', 'Administrator'),
+('mark@gmail.com', '12345', 'Mark'),
+('rjkent@gmail.com', '12345', 'Rjkent'),
+('gabieta@gmail.com', '12345', 'Gabieta'),
+('raphael@gmail.com', '12345', 'Raphael'),
+('dylan@gmail.com', '12345', 'Dylan');
+
+-- Categories
+INSERT OR IGNORE INTO categories (name) VALUES
+('Laptops'), ('Audio'), ('Phones'), ('Cameras'), ('Gaming'), ('Wearables');
+
+-- Products (stock = 20)
+INSERT OR IGNORE INTO products (category_id, name, price, stock, image, review_count, rating) VALUES
+((SELECT category_id FROM categories WHERE name = 'Laptops'), 'MacBook Pro 16-inch with M3 Chip', 2499.99, 20, '/Images/macbook-pro.jpg', 324, 4.8),
+((SELECT category_id FROM categories WHERE name = 'Audio'), 'Sony WH-1000XM5 Wireless Noise Canceling Headphones', 349.99, 20, '/Images/sony-wh1000xm5.jpg', 892, 4.7),
+((SELECT category_id FROM categories WHERE name = 'Phones'), 'iPhone 15 Pro Max 256GB', 1199.99, 20, '/Images/iphone-15-pro-max.jpg', 567, 4.6),
+((SELECT category_id FROM categories WHERE name = 'Cameras'), 'Canon EOS R6 Mark II Mirrorless Camera', 2499.99, 20, '/Images/canon-eos-r6.jpg', 156, 4.9),
+((SELECT category_id FROM categories WHERE name = 'Gaming'), 'PlayStation 5 Console', 499.99, 20, '/Images/ps5-console.jpg', 1203, 4.5),
+((SELECT category_id FROM categories WHERE name = 'Wearables'), 'Apple Watch Series 9 GPS + Cellular 45mm', 499.99, 20, '/Images/apple-watch-series9.jpg', 789, 4.4);
+
+-- Orders
+-- Mark: 3 MacBook Pro
+INSERT INTO orders (user_id, total_amount, status, delivery_address)
+VALUES ((SELECT user_id FROM users WHERE email='mark@gmail.com'), 2499.99*3, 'Pending', 'Mark Address');
+
+INSERT INTO order_items (order_id, product_id, quantity, price)
+VALUES ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='mark@gmail.com') LIMIT 1),
+        (SELECT product_id FROM products WHERE name='MacBook Pro 16-inch with M3 Chip'), 3, 2499.99);
+
+-- Gabieta: 10 Canon EOS R6
+INSERT INTO orders (user_id, total_amount, status, delivery_address)
+VALUES ((SELECT user_id FROM users WHERE email='gabieta@gmail.com'), 2499.99*10, 'Pending', 'Gabieta Address');
+
+INSERT INTO order_items (order_id, product_id, quantity, price)
+VALUES ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WHERE email='gabieta@gmail.com') LIMIT 1),
+        (SELECT product_id FROM products WHERE name='Canon EOS R6 Mark II Mirrorless Camera'), 10, 2499.99);
+
+-- Update product stock to account for orders
+UPDATE products SET stock = 20 - 3 WHERE name='MacBook Pro 16-inch with M3 Chip';
+UPDATE products SET stock = 20 - 10 WHERE name='Canon EOS R6 Mark II Mirrorless Camera';
+`;
+const dbExists = fs.existsSync(DB_FILE);
 // Open database (creates file if it doesn't exist)
 const db = new sqlite3.Database(
   DB_FILE,
@@ -124,14 +168,18 @@ const db = new sqlite3.Database(
       else console.log("Foreign key constraints enabled.");
     });
 
-    // Execute schema + inserts all at once
-    db.exec(SCHEMA_SQL, (err) => {
-      if (err) {
-        console.error("Error executing schema SQL:", err.message);
-      } else {
-        console.log("Database schema initialized successfully (inline).");
-      }
-    });
+    // Only execute schema if DB didn’t exist before
+    if (!dbExists) {
+      db.exec(SCHEMA_SQL, (err) => {
+        if (err) {
+          console.error("Error executing schema SQL:", err.message);
+        } else {
+          console.log("Database schema initialized successfully.");
+        }
+      });
+    } else {
+      console.log("Database already exists; skipping schema initialization.");
+    }
   }
 );
 
