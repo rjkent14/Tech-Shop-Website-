@@ -36,7 +36,7 @@ CREATE TABLE categories (
 CREATE TABLE products (
   product_id INTEGER PRIMARY KEY AUTOINCREMENT,
   category_id INTEGER,
-  name TEXT NOT NULL,
+ name TEXT NOT NULL UNIQUE,
   description TEXT,
   price REAL NOT NULL,
   stock INTEGER NOT NULL DEFAULT 0,
@@ -97,14 +97,6 @@ VALUES ('admin@example.com', 'adminpass', 'Administrator');
 INSERT OR IGNORE INTO categories (name) VALUES
 ('Laptops'), ('Audio'), ('Phones'), ('Cameras'), ('Gaming'), ('Wearables');
 
--- Default products (let AUTOINCREMENT handle product_id)
-INSERT INTO products (category_id, name, price, stock, image, review_count, rating) VALUES
-((SELECT category_id FROM categories WHERE name = 'Laptops'), 'MacBook Pro 16-inch with M3 Chip', 2499.99, 1, '/Images/macbook-pro.jpg', 324, 4.8),
-((SELECT category_id FROM categories WHERE name = 'Audio'), 'Sony WH-1000XM5 Wireless Noise Canceling Headphones', 349.99, 1, '/Images/sony-wh1000xm5.jpg', 892, 4.7),
-((SELECT category_id FROM categories WHERE name = 'Phones'), 'iPhone 15 Pro Max 256GB', 1199.99, 1, '/Images/iphone-15-pro-max.jpg', 567, 4.6),
-((SELECT category_id FROM categories WHERE name = 'Cameras'), 'Canon EOS R6 Mark II Mirrorless Camera', 2499.99, 0, '/Images/canon-eos-r6.jpg', 156, 4.9),
-((SELECT category_id FROM categories WHERE name = 'Gaming'), 'PlayStation 5 Console', 499.99, 1, '/Images/ps5-console.jpg', 1203, 4.5),
-((SELECT category_id FROM categories WHERE name = 'Wearables'), 'Apple Watch Series 9 GPS + Cellular 45mm', 499.99, 1, '/Images/apple-watch-series9.jpg', 789, 4.4);
 
 -- Users
 INSERT OR IGNORE INTO users (email, password, name)
