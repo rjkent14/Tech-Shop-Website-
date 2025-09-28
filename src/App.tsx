@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./styles/stretch-effect.css";
 import "./stretch-effect.js";
-
+import Settings from "./pages/Settings";
+import Orders from "./pages/Order";
 import LoginPage from "./components/LoginPage";
 import SignUpPage from "./components/SignUpPage";
 import CheckoutPage from "./components/CheckoutPage";
@@ -17,6 +18,7 @@ import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]); // ✅ snapshot for checkout
   const [products, setProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartClosing, setCartClosing] = useState(false);
@@ -34,7 +36,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch products from backend
-  React.useEffect(() => {
+  useEffect(() => {
     fetch("http://localhost:5000/api/products")
       .then((res) => res.json())
       .then((data) => {
@@ -63,7 +65,6 @@ export default function App() {
       )
     : products;
 
-  // Count by category for filtered products
   const productTypeCount =
     filteredProducts.length > 0 && searchTerm.trim()
       ? filteredProducts.reduce((acc, p) => {
@@ -72,13 +73,15 @@ export default function App() {
         }, {} as Record<string, number>)
       : null;
 
-  // Handle navigation events
-  React.useEffect(() => {
+  // Navigation events
+  useEffect(() => {
     const showLogin = () => setRoute("login");
     const showSignup = () => setRoute("signup");
     const showHome = () => setRoute("home");
     const showCheckout = () => {
       if (isLoggedIn) {
+        // Take snapshot of cart for checkout
+        setCheckoutItems([...cartItems]);
         setRoute("checkout");
       } else {
         setRoute("login");
@@ -91,7 +94,6 @@ export default function App() {
     window.addEventListener("show-home", showHome);
     window.addEventListener("show-checkout", showCheckout);
 
-    // Sync login state from localStorage
     const syncLogin = () => {
       const stored = localStorage.getItem("isLoggedIn");
       if (stored === "true" && !isLoggedIn) setIsLoggedIn(true);
@@ -106,43 +108,40 @@ export default function App() {
       window.removeEventListener("show-checkout", showCheckout);
       window.removeEventListener("storage", syncLogin);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, cartItems]);
 
-  // Add item to cart
+  // Add to cart
   const addToCart = (product: Product) => {
     setCartItems((prev) => {
-      const existingItem = prev.find(
-        (item) => item.product_id === Number(product.id)
-      );
-      if (existingItem) {
-        return prev.map((item) =>
-          item.product_id === Number(product.id)
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+      const existing = prev.find((i) => i.product_id === Number(product.id));
+      if (existing) {
+        return prev.map((i) =>
+          i.product_id === Number(product.id)
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
         );
-      } else {
-        return [
-          ...prev,
-          {
-            product_id: Number(product.id),
-            name: product.name,
-            price: product.price,
-            originalPrice: product.originalPrice,
-            rating: product.rating,
-            reviewCount: product.reviewCount,
-            image: product.image,
-            category: product.category,
-            inStock: product.inStock,
-            stock: product.stock,
-            quantity: 1,
-          },
-        ];
       }
+      return [
+        ...prev,
+        {
+          product_id: Number(product.id),
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          image: product.image,
+          category: product.category,
+          inStock: product.inStock,
+          stock: product.stock,
+          quantity: 1,
+        },
+      ];
     });
     toast.success(`${product.name} added to cart!`);
   };
 
-  // Update cart item quantity
+  // Update quantity
   const updateQuantity = (productId: number, quantity: number) => {
     setCartItems((prev) =>
       prev.map((item) => {
@@ -162,21 +161,14 @@ export default function App() {
     );
   };
 
-  // Remove item from cart
+  // Remove from cart
   const removeFromCart = (productId: number) => {
-    setCartItems((prev) =>
-      prev.filter((item) => item.product_id !== productId)
-    );
+    setCartItems((prev) => prev.filter((item) => item.product_id !== productId));
     toast.success("Item removed from cart");
   };
 
-  // Count total cart items
-  const cartItemsCount = cartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // --- JSX ---
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -192,13 +184,13 @@ export default function App() {
         productTypeCount={productTypeCount}
       />
 
-      <div
-        className="flex-1 overflow-y-auto"
-        id="main-scroll-wrapper"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-        <main className="transition-transform duration-300" id="main-content">
-          {route === "login" ? (
+      <div className="flex-1 overflow-y-auto">
+        <main className="transition-transform duration-300">
+          {route === "orders" ? (
+            <Orders />
+          ) : route === "settings" ? (
+            <Settings />
+          ) : route === "login" ? (
             <LoginPage
               onLogin={(isAdmin: boolean, userId: string) => {
                 setIsLoggedIn(true);
@@ -212,17 +204,14 @@ export default function App() {
             <SignUpPage onLogin={() => setRoute("login")} />
           ) : route === "checkout" ? (
             <CheckoutPage
-              cartItems={cartItems}
+              cartItems={checkoutItems} // ✅ snapshot
               shippingFee={
-                cartItems.length > 0 &&
-                cartItems.reduce(
-                  (sum, item) => sum + item.price * item.quantity,
-                  0
-                ) > 50
+                checkoutItems.reduce((sum, i) => sum + i.price * i.quantity, 0) > 50
                   ? 0
                   : 9.99
               }
               onBack={() => setRoute("home")}
+              onClearCart={() => setCartItems([])} // ✅ clear after success
             />
           ) : route === "admin" ? (
             <AdminPage />
@@ -238,30 +227,38 @@ export default function App() {
       <Footer />
 
       {(isCartOpen || cartClosing) && (
-        <ShoppingCart
-          isOpen={isCartOpen}
-          onClose={() => {
-            setCartClosing(true);
-            setTimeout(() => {
-              setIsCartOpen(false);
-              setCartClosing(false);
-            }, 400);
-          }}
-          cartItems={cartItems}
-          onUpdateQuantity={updateQuantity}
-          onRemoveItem={removeFromCart}
-          onClearCart={() => setCartItems([])}
-        />
+<ShoppingCart
+  isOpen={isCartOpen}
+  onClose={() => setCartClosing(true)}
+  cartItems={cartItems}
+  onUpdateQuantity={updateQuantity}
+  onRemoveItem={removeFromCart}
+  onCheckout={() => {
+    setCheckoutItems([...cartItems]); // snapshot of cart
+    setRoute("checkout");             // navigate to CheckoutPage
+    setIsCartOpen(false);             // close cart
+  }}
+  userAddress={localStorage.getItem("userAddress") || ""}
+/>
       )}
 
       {isLoggedIn && showProfile && (
         <ProfileSection
           onClose={() => setShowProfile(false)}
+          onSeeOrders={() => {
+            setShowProfile(false);
+            setRoute("orders");
+          }}
+          onSettings={() => {
+            setShowProfile(false);
+            setRoute("settings");
+          }}
           onLogout={() => {
             setIsLoggedIn(false);
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("isAdmin");
             localStorage.removeItem("userId");
+            localStorage.removeItem("userAddress");
             setShowProfile(false);
             setRoute("home");
             toast.success("Logged out successfully!");

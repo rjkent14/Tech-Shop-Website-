@@ -28,7 +28,9 @@ interface ShoppingCartProps {
   cartItems: CartItem[];
 onUpdateQuantity: (productId: number, quantity: number) => void;
 onRemoveItem: (productId: number) => void;
-    onClearCart: () => void;   // 👈 add this
+  onCheckout: () => void; // ✅ new
+    userAddress?: string;  // 👈 add this
+    
 }
 
 export function ShoppingCart({ 
@@ -37,7 +39,8 @@ export function ShoppingCart({
   cartItems, 
   onUpdateQuantity, 
   onRemoveItem,
-    onClearCart,   // 👈 here
+    onCheckout,
+     userAddress,   // 👈 here
 }: ShoppingCartProps) {
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 50 ? 0 : 9.99;
@@ -157,36 +160,11 @@ export function ShoppingCart({
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
-              <Button
+ <Button
   className="w-full mt-4"
-  onClick={async () => {
-    const userId = Number(localStorage.getItem("userId")); // stored at login
-    console.log("Placing order for userId:", userId, "with items:", cartItems); // 👈 debug
-    try {
-      const res = await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-  userId,
-  cartItems, // ✅ already has product_id
-  deliveryAddress: "Default address here",
-}),
-
-
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Order placed successfully!");
-     onClearCart(); // 👈 call the parent’s clear function
-        window.dispatchEvent(new CustomEvent("show-checkout"));
-        onClose();
-      } else {
-        toast.error(data.error || "Failed to place order");
-      }
-    } catch (err) {
-      toast.error("Network error");
-      console.error(err);
-    }
+  onClick={() => {
+    onCheckout();  // ✅ just navigate to CheckoutPage
+    onClose();     // close the cart UI
   }}
 >
   Checkout

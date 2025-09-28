@@ -3,9 +3,11 @@ const express = require("express");
 const db = require("../../database/query.js");
 const router = express.Router();
 
-// CREATE order
+// CREATE order with payment
+// CREATE order with payment
 router.post("/", (req, res) => {
-  const { userId, cartItems, deliveryAddress } = req.body;
+  const { userId, cartItems, deliveryAddress, paymentMethod, total } = req.body;
+  console.log("Incoming order body:", req.body);
   if (!userId || !cartItems || cartItems.length === 0) {
     return res.status(400).json({ error: "Missing userId or cartItems" });
   }
@@ -35,19 +37,29 @@ router.post("/", (req, res) => {
         0
       );
       const shipping = subtotal > 50 ? 0 : 9.99;
-      const total = subtotal + shipping;
+      const computedTotal = subtotal + shipping;
 
+      if (total && Math.abs(total - computedTotal) > 0.01) {
+        return res.status(400).json({ error: "Total mismatch" });
+      }
+
+      // ✅ Insert into orders (no payment fields here)
       db.run(
-        "INSERT INTO orders (user_id, total_amount, delivery_address, status) VALUES (?, ?, ?, ?)",
-        [userId, total, deliveryAddress || "", "Pending"],
+        `INSERT INTO orders (user_id, total_amount, delivery_address, status, created_at) 
+         VALUES (?, ?, ?, 'Pending', datetime('now'))`,
+        [userId, computedTotal, deliveryAddress || ""],
         function (err) {
-          if (err) return res.status(500).json({ error: "Failed to create order" });
+          if (err) {
+            console.error("Insert order error:", err.message);
+            return res.status(500).json({ error: "Failed to create order" });
+          }
 
           const orderId = this.lastID;
-          const stmt = db.prepare(
-            "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)"
-          );
 
+          // ✅ Insert items
+          const stmt = db.prepare(
+            `INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)`
+          );
           cartItems.forEach((item) => {
             stmt.run(orderId, item.product_id, item.quantity, item.price);
             db.run(
@@ -57,12 +69,28 @@ router.post("/", (req, res) => {
           });
           stmt.finalize();
 
-          res.json({ message: "Order placed successfully", orderId });
+          // ✅ Insert into payments
+          db.run(
+            `INSERT INTO payments (order_id, amount, method, status) VALUES (?, ?, ?, 'Pending')`,
+            [orderId, computedTotal, paymentMethod || "card"],
+            (err) => {
+              if (err) {
+                console.error("Insert payment error:", err.message);
+                return res
+                  .status(500)
+                  .json({ error: "Failed to create payment record" });
+              }
+
+              res.json({ success: true, orderId });
+            }
+          );
         }
       );
     }
   );
 });
+
+
 
 // GET orders for a user
 router.get("/:userId", (req, res) => {
@@ -78,6 +106,26 @@ router.get("/:userId", (req, res) => {
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(rows);
+    }
+  );
+});
+// CONFIRM payment for an order
+router.put("/payments/:orderId/confirm", (req, res) => {
+  const { orderId } = req.params;
+
+  db.run(
+    `UPDATE payments 
+     SET status = 'Paid', paid_at = CURRENT_TIMESTAMP 
+     WHERE order_id = ?`,
+    [orderId],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: "Failed to confirm payment" });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Payment not found for this order" });
+      }
+      res.json({ message: "Payment confirmed successfully", orderId });
     }
   );
 });
