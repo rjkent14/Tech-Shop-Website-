@@ -79,4 +79,26 @@ router.put("/:userId", (req, res) => {
   });
 });
 
+// GET all users
+router.get("/", (req, res) => {
+ db.all("SELECT user_id, name, email FROM users", [], (err, rows) => {
+  if (err) return res.status(500).json({ error: "Failed to fetch users" });
+  res.json(rows);
+});
+});
+
+// CREATE user
+router.post("/", (req, res) => {
+  const { name, email, password } = req.body;
+  db.run(
+  "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+  [name, email, password],
+  function (err) {
+    if (err) return res.status(500).json({ error: "Failed to create user" });
+    res.json({ user_id: this.lastID, name, email });
+  }
+);
+});
+
+
 module.exports = router;
