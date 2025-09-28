@@ -1,6 +1,6 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
-const fs = require("fs"); // ✅ missing import
+//const fs = require("fs"); // ✅ missing import
 // Path to database file
 const DB_FILE = path.join(__dirname, "../../public/sql.db");
 
@@ -150,7 +150,7 @@ VALUES ((SELECT order_id FROM orders WHERE user_id=(SELECT user_id FROM users WH
 UPDATE products SET stock = 20 - 3 WHERE name='MacBook Pro 16-inch with M3 Chip';
 UPDATE products SET stock = 20 - 10 WHERE name='Canon EOS R6 Mark II Mirrorless Camera';
 `;
-const dbExists = fs.existsSync(DB_FILE);
+//const dbExists = fs.existsSync(DB_FILE);
 // Open database (creates file if it doesn't exist)
 const db = new sqlite3.Database(
   DB_FILE,
@@ -169,7 +169,7 @@ const db = new sqlite3.Database(
     });
 
     // Only execute schema if DB didn’t exist before
-    if (!dbExists) {
+    
       db.exec(SCHEMA_SQL, (err) => {
         if (err) {
           console.error("Error executing schema SQL:", err.message);
@@ -177,9 +177,7 @@ const db = new sqlite3.Database(
           console.log("Database schema initialized successfully.");
         }
       });
-    } else {
-      console.log("Database already exists; skipping schema initialization.");
-    }
+    
   }
 );
 

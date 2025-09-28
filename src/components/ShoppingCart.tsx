@@ -18,6 +18,7 @@ export interface CartItem {
   category: string | number;
   inStock: boolean;
   quantity: number;
+    stock: number;   // ✅ NEW: from DB
 }
 
 
@@ -83,6 +84,15 @@ export function ShoppingCart({
                       <p className="text-sm text-muted-foreground">{item.category}</p>
                       <p className="font-semibold">${item.price.toFixed(2)}</p>
                       <div className="flex items-center justify-between mt-2">
+                         <p className={`text-xs font-medium ${
+  item.stock > 5 
+    ? "text-green-600"   // plenty in stock
+    : item.stock > 0 
+      ? "text-yellow-600"  // low stock warning
+      : "text-red-600"     // out of stock
+}`}>
+  {item.stock > 0 ? `${item.stock} in stock` : "Out of stock"}
+</p>
                         <div className="flex items-center space-x-2">
                           <Button
                             variant="outline"
@@ -95,13 +105,20 @@ export function ShoppingCart({
                           </Button>
                           <span className="w-8 text-center">{item.quantity}</span>
                           <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                           onClick={() => onUpdateQuantity(item.product_id, item.quantity + 1)}
-                          >
-                            <Plus className="w-3 h-3" />
-                          </Button>
+  variant="outline"
+  size="icon"
+  className="h-8 w-8"
+  onClick={() => {
+    if (item.quantity < item.stock) {
+      onUpdateQuantity(item.product_id, item.quantity + 1);
+    } else {
+      toast.error(`Only ${item.stock} available in stock.`);
+    }
+  }}
+>
+  <Plus className="w-3 h-3" />
+</Button>
+
                         </div>
                         <Button
                           variant="ghost"

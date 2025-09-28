@@ -51,6 +51,7 @@ import AdminPage from "./pages/AdminPage";
           image: row.image, // already like `/Images/...`
           category: row.category_id, // you can join with categories if needed
           inStock: row.stock > 0,
+		  stock: row.stock,  // 👈 add this
         }))
       );
     })
@@ -120,7 +121,7 @@ const addToCart = (product: Product) => {
       return [
         ...prev,
         {
-          product_id: Number(product.id), // ✅ backend-ready
+          product_id: Number(product.id),
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
@@ -129,6 +130,7 @@ const addToCart = (product: Product) => {
           image: product.image,
           category: product.category,
           inStock: product.inStock,
+          stock: product.stock,   // 👈 FIX: include stock from DB
           quantity: 1,
         },
       ];
@@ -137,15 +139,23 @@ const addToCart = (product: Product) => {
   toast.success(`${product.name} added to cart!`);
 };
 
+
 const updateQuantity = (productId: number, quantity: number) => {
-  if (quantity <= 0) {
-    removeFromCart(productId);
-    return;
-  }
   setCartItems((prev) =>
-    prev.map((item) =>
-      item.product_id === productId ? { ...item, quantity } : item
-    )
+    prev.map((item) => {
+      if (item.product_id === productId) {
+        if (quantity > item.stock) {
+          toast.error(`Only ${item.stock} left in stock.`);
+          return item; // don’t update
+        }
+        if (quantity <= 0) {
+          toast.error("Quantity must be at least 1.");
+          return item;
+        }
+        return { ...item, quantity };
+      }
+      return item;
+    })
   );
 };
 
