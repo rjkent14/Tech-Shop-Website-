@@ -4,7 +4,7 @@ const fs = require("fs"); // ✅ missing import
 // Path to database file
 const DB_FILE = path.join(__dirname, "../../public/sql.db");
 
-// Full schema and inserts as a string
+// Full schema and inserts as a string ye
 const SCHEMA_SQL = `
 -- Drop tables in reverse order of dependencies
 DROP TABLE IF EXISTS payments;
