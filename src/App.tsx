@@ -35,6 +35,11 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+   // FORCE FIRST LOAD → LOGIN PAGE
+  useEffect(() => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("isAdmin");
+  }, []);
   // Fetch products from backend
   useEffect(() => {
     fetch("http://localhost:5000/api/products")
