@@ -15,7 +15,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 }) => {
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay the */}
       <div
         className="fixed inset-0 bg-black bg-opacity-40 z-40 transition-opacity duration-300"
         style={{ backdropFilter: "blur(2px)" }}
