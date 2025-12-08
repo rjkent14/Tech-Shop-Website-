@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
+  onProductClick: (product: Product) => void;
 }
+export function ProductGrid({ products, onAddToCart, onProductClick }: ProductGridProps) {
 
-export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [visibleCount, setVisibleCount] = useState(4); // Show only one row (4 products)
@@ -121,7 +122,12 @@ export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
               <div className="home-animate-text" style={{ animation: `fadeUp 0.7s cubic-bezier(.4,2,.3,1) ${idx * 0.12}s both` }}>
                 {/* ...existing product card text/details code... */}
               </div>
-              <ProductCard product={product} onAddToCart={onAddToCart} />
+          <ProductCard
+  key={product.id}
+  product={product}
+  onAddToCart={onAddToCart}
+  onClick={() => onProductClick(product)}
+/>
             </div>
           ))}
         </div>

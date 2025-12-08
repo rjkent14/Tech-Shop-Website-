@@ -15,6 +15,8 @@ import { Footer } from "./components/Footer";
 import { Product } from "./components/ProductCard";
 import { toast } from "sonner";
 import AdminPage from "./pages/AdminPage";
+import ProductDetails from "./components/ProductDetails";
+
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -22,6 +24,8 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartClosing, setCartClosing] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem("isLoggedIn") === "true"
   );
@@ -35,11 +39,11 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-   // FORCE FIRST LOAD → LOGIN PAGE
-  useEffect(() => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("isAdmin");
-  }, []);
+  //  // FORCE FIRST LOAD → LOGIN PAGE
+  // useEffect(() => {
+  //   localStorage.removeItem("isLoggedIn");
+  //   localStorage.removeItem("isAdmin");
+  // }, []);
   // Fetch products from backend
   useEffect(() => {
     fetch("http://localhost:5000/api/products")
@@ -220,10 +224,24 @@ export default function App() {
             />
           ) : route === "admin" ? (
             <AdminPage />
-          ) : (
-            <>
+          ) : route === "product" ? (
+    <ProductDetails
+      product={selectedProduct}
+      onBack={() => setRoute("home")}
+      onAddToCart={addToCart}
+    />
+  ) : (
+    <>
               <Hero />
-              <ProductGrid products={filteredProducts} onAddToCart={addToCart} />
+
+                  <ProductGrid
+          products={filteredProducts}
+          onAddToCart={addToCart}
+          onProductClick={(product) => {
+          setSelectedProduct(product);
+          setRoute("product");
+          }}
+            />
             </>
           )}
         </main>
