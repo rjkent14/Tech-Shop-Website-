@@ -175,7 +175,16 @@ export default function App() {
     setCartItems((prev) => prev.filter((item) => item.product_id !== productId));
     toast.success("Item removed from cart");
   };
+const handleCartClose = () => {
+  // Start closing animation
+  setCartClosing(true);
 
+  // Wait for animation to finish
+  setTimeout(() => {
+    setCartClosing(false);
+    setIsCartOpen(false);
+  }, 400); // match animation duration
+};
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -252,7 +261,7 @@ export default function App() {
       {(isCartOpen || cartClosing) && (
 <ShoppingCart
   isOpen={isCartOpen}
-  onClose={() => setCartClosing(true)}
+   onClose={handleCartClose} 
   cartItems={cartItems}
   onUpdateQuantity={updateQuantity}
   onRemoveItem={removeFromCart}

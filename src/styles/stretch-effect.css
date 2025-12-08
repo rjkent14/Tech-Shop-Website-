@@ -12,7 +12,7 @@
 .animate-slide-in {
   animation: slide-in 0.4s cubic-bezier(.4,2,.3,1);
 }
-/* Rubber band stretching effect for main content */
+/* Rubber band strsaasaetching effect for main content */
 #main-scroll-wrapper {
   overscroll-behavior-y: contain;
 }

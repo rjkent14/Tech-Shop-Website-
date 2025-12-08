@@ -49,9 +49,7 @@ export function ShoppingCart({
 
   if (!isOpen) return null;
 
-  const handleClose = () => {
-    onClose();
-  };
+
 
   return (
     <div
@@ -60,7 +58,7 @@ export function ShoppingCart({
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-bold">Shopping Cart ({cartItems.length})</h2>
-  <Button variant="outline" size="sm" onClick={handleClose} aria-label="Close Cart">✕</Button>
+<Button variant="outline" size="sm" onClick={onClose} aria-label="Close Cart">✕</Button>
       </div>
         <div className="text-muted-foreground mb-4">
           Review your selected items and proceed to checkout when ready.
