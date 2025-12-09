@@ -16,9 +16,14 @@ export interface OrderItem {
 interface OrderProductDetailProps {
   item: OrderItem;
   onClose: () => void;
+  onViewProduct?: (productId: number) => void; // Add this prop
 }
 
-const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ item, onClose }) => {
+const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ 
+  item, 
+  onClose,
+  onViewProduct 
+}) => {
   const subtotal = item.price * item.quantity;
   const taxRate = 0.08; // 8% tax
   const tax = subtotal * taxRate;
@@ -32,8 +37,16 @@ const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ item, onClose }
     };
   }, []);
 
+  const handleViewProduct = () => {
+    if (onViewProduct) {
+      onViewProduct(item.product_id);
+    }
+    onClose(); // Close the modal after navigating
+  };
+
   return (
-<div className="fixed inset-0 bg-gray-100 z-[9999] overflow-y-auto">      {/* Header - Fixed */}
+    <div className="fixed inset-0 bg-gray-100 z-[9999] overflow-y-auto">
+      {/* Header - Fixed */}
       <div className="sticky top-0 bg-white border-b shadow-sm z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -163,7 +176,10 @@ const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ item, onClose }
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Actions</h3>
                     <div className="flex flex-wrap gap-3">
-                      <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors text-sm md:text-base">
+                      <button 
+                        className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors text-sm md:text-base"
+                        onClick={handleViewProduct}
+                      >
                         View Product Page
                       </button>
                       <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">

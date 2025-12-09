@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import OrderProductDetail, { OrderItem } from "./OrderDetail";
+import { Product } from "../components/ProductCard"; // Adjust import path as needed
 
 interface Order {
   order_id: number;
@@ -9,7 +10,11 @@ interface Order {
   items: OrderItem[];
 }
 
-const Orders: React.FC = () => {
+interface OrdersProps {
+  onViewProduct?: (productId: number) => void; // Add this prop
+}
+
+const Orders: React.FC<OrdersProps> = ({ onViewProduct }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<OrderItem | null>(null);
@@ -115,6 +120,7 @@ const Orders: React.FC = () => {
         <OrderProductDetail
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          onViewProduct={onViewProduct} // Pass the handler here
         />
       )}
     </div>

@@ -17,15 +17,13 @@ import { toast } from "sonner";
 import AdminPage from "./pages/AdminPage";
 import ProductDetails from "./components/ProductDetails";
 
-
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]); // ✅ snapshot for checkout
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartClosing, setCartClosing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem("isLoggedIn") === "true"
   );
@@ -39,11 +37,6 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  //  // FORCE FIRST LOAD → LOGIN PAGE
-  // useEffect(() => {
-  //   localStorage.removeItem("isLoggedIn");
-  //   localStorage.removeItem("isAdmin");
-  // }, []);
   // Fetch products from backend
   useEffect(() => {
     fetch("http://localhost:5000/api/products")
@@ -67,6 +60,45 @@ export default function App() {
       .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
+  // Handle viewing product from order
+  const handleViewProductFromOrder = async (productId: number) => {
+    try {
+      // First, check if product is already in our list
+      const existingProduct = products.find(p => String(p.id) === String(productId));
+      if (existingProduct) {
+        setSelectedProduct(existingProduct);
+        setRoute("product");
+        return;
+      }
+
+      // If not in list, fetch from API
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`);
+      if (response.ok) {
+        const productData = await response.json();
+        // Convert to Product type
+        const product: Product = {
+          id: String(productData.product_id),
+          name: productData.name,
+          price: productData.price,
+          originalPrice: productData.price * 1.05,
+          rating: productData.rating || 4.0,
+          reviewCount: productData.review_count || 0,
+          image: productData.image,
+          category: productData.category_id.toString(),
+          inStock: productData.stock > 0,
+          stock: productData.stock,
+        };
+        setSelectedProduct(product);
+        setRoute("product");
+      } else {
+        toast.error("Product not found in catalog");
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      toast.error("Failed to load product details");
+    }
+  };
+
   // Filter products by search term
   const filteredProducts = searchTerm.trim()
     ? products.filter((p) =>
@@ -89,7 +121,6 @@ export default function App() {
     const showHome = () => setRoute("home");
     const showCheckout = () => {
       if (isLoggedIn) {
-        // Take snapshot of cart for checkout
         setCheckoutItems([...cartItems]);
         setRoute("checkout");
       } else {
@@ -175,16 +206,15 @@ export default function App() {
     setCartItems((prev) => prev.filter((item) => item.product_id !== productId));
     toast.success("Item removed from cart");
   };
-const handleCartClose = () => {
-  // Start closing animation
-  setCartClosing(true);
 
-  // Wait for animation to finish
-  setTimeout(() => {
-    setCartClosing(false);
-    setIsCartOpen(false);
-  }, 400); // match animation duration
-};
+  const handleCartClose = () => {
+    setCartClosing(true);
+    setTimeout(() => {
+      setCartClosing(false);
+      setIsCartOpen(false);
+    }, 400);
+  };
+
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -205,7 +235,7 @@ const handleCartClose = () => {
       <div className="flex-1 overflow-y-auto">
         <main className="transition-transform duration-300">
           {route === "orders" ? (
-            <Orders />
+            <Orders onViewProduct={handleViewProductFromOrder} />
           ) : route === "settings" ? (
             <Settings />
           ) : route === "login" ? (
@@ -222,35 +252,34 @@ const handleCartClose = () => {
             <SignUpPage onLogin={() => setRoute("login")} />
           ) : route === "checkout" ? (
             <CheckoutPage
-              cartItems={checkoutItems} // ✅ snapshot
+              cartItems={checkoutItems}
               shippingFee={
                 checkoutItems.reduce((sum, i) => sum + i.price * i.quantity, 0) > 50
                   ? 0
                   : 9.99
               }
               onBack={() => setRoute("home")}
-              onClearCart={() => setCartItems([])} // ✅ clear after success
+              onClearCart={() => setCartItems([])}
             />
           ) : route === "admin" ? (
             <AdminPage />
           ) : route === "product" ? (
-    <ProductDetails
-      product={selectedProduct}
-      onBack={() => setRoute("home")}
-      onAddToCart={addToCart}
-    />
-  ) : (
-    <>
-              <Hero />
-
-                  <ProductGrid
-          products={filteredProducts}
-          onAddToCart={addToCart}
-          onProductClick={(product) => {
-          setSelectedProduct(product);
-          setRoute("product");
-          }}
+            <ProductDetails
+              product={selectedProduct}
+              onBack={() => setRoute("home")}
+              onAddToCart={addToCart}
             />
+          ) : (
+            <>
+              <Hero />
+              <ProductGrid
+                products={filteredProducts}
+                onAddToCart={addToCart}
+                onProductClick={(product) => {
+                  setSelectedProduct(product);
+                  setRoute("product");
+                }}
+              />
             </>
           )}
         </main>
@@ -259,19 +288,19 @@ const handleCartClose = () => {
       <Footer />
 
       {(isCartOpen || cartClosing) && (
-<ShoppingCart
-  isOpen={isCartOpen}
-   onClose={handleCartClose} 
-  cartItems={cartItems}
-  onUpdateQuantity={updateQuantity}
-  onRemoveItem={removeFromCart}
-  onCheckout={() => {
-    setCheckoutItems([...cartItems]); // snapshot of cart
-    setRoute("checkout");             // navigate to CheckoutPage
-    setIsCartOpen(false);             // close cart
-  }}
-  userAddress={localStorage.getItem("userAddress") || ""}
-/>
+        <ShoppingCart
+          isOpen={isCartOpen}
+          onClose={handleCartClose}
+          cartItems={cartItems}
+          onUpdateQuantity={updateQuantity}
+          onRemoveItem={removeFromCart}
+          onCheckout={() => {
+            setCheckoutItems([...cartItems]);
+            setRoute("checkout");
+            setIsCartOpen(false);
+          }}
+          userAddress={localStorage.getItem("userAddress") || ""}
+        />
       )}
 
       {isLoggedIn && showProfile && (
