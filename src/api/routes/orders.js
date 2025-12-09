@@ -172,18 +172,109 @@ router.get("/", (req, res) => {
   );
 });
 
-// Update order status
+// Update order status (with reasons)
 router.put("/:orderId/status", (req, res) => {
   const { orderId } = req.params;
-  const { status } = req.body;
+  const { status, cancellation_reason, refund_reason } = req.body;
 
-  db.run(
-    `UPDATE orders SET status = ? WHERE order_id = ?`,
-    [status, orderId],
-    function (err) {
+  // Build the update query dynamically based on provided fields
+  let updateFields = [];
+  let values = [];
+
+  updateFields.push("status = ?");
+  values.push(status);
+
+  if (cancellation_reason !== undefined) {
+    updateFields.push("cancellation_reason = ?");
+    values.push(cancellation_reason);
+  }
+
+  if (refund_reason !== undefined) {
+    updateFields.push("refund_reason = ?");
+    values.push(refund_reason);
+  }
+
+  // Add orderId to values array
+  values.push(orderId);
+
+  const updateQuery = `UPDATE orders SET ${updateFields.join(", ")} WHERE order_id = ?`;
+
+  db.run(updateQuery, values, function (err) {
+    if (err) {
+      console.error("Error updating order:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) return res.status(404).json({ error: "Order not found" });
+    
+    res.json({ 
+      message: "Order status updated successfully",
+      orderId,
+      status,
+      ...(cancellation_reason && { cancellation_reason }),
+      ...(refund_reason && { refund_reason })
+    });
+  });
+});
+
+// Also update the GET orders route to include these fields
+router.get("/:userId", (req, res) => {
+  const userId = req.params.userId;
+  db.all(
+    `SELECT o.order_id, o.total_amount, o.status, o.created_at, o.delivery_address,
+            o.cancellation_reason, o.refund_reason,  -- ✅ Include new columns
+            oi.product_id, oi.quantity, oi.price, p.name, p.image
+     FROM orders o
+     JOIN order_items oi ON o.order_id = oi.order_id
+     JOIN products p ON oi.product_id = p.product_id
+     WHERE o.user_id = ?`,
+    [userId],
+    (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (this.changes === 0) return res.status(404).json({ error: "Order not found" });
-      res.json({ message: "Order status updated" });
+      res.json(rows);
+    }
+  );
+});
+
+// Also update the admin GET all orders route
+router.get("/", (req, res) => {
+  db.all(
+    `SELECT o.order_id, o.user_id, o.total_amount, o.status, o.created_at, o.delivery_address,
+            o.cancellation_reason, o.refund_reason,  -- ✅ Include new columns
+            oi.product_id, oi.quantity, oi.price, p.name, p.image
+     FROM orders o
+     JOIN order_items oi ON o.order_id = oi.order_id
+     JOIN products p ON oi.product_id = p.product_id
+     ORDER BY o.order_id DESC`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Group items by order
+      const ordersMap = {};
+      rows.forEach((row) => {
+        if (!ordersMap[row.order_id]) {
+          ordersMap[row.order_id] = {
+            order_id: row.order_id,
+            user_id: row.user_id,
+            total_amount: row.total_amount,
+            status: row.status,
+            created_at: row.created_at,
+            delivery_address: row.delivery_address,
+            cancellation_reason: row.cancellation_reason,  // ✅ Include in response
+            refund_reason: row.refund_reason,              // ✅ Include in response
+            items: [],
+          };
+        }
+        ordersMap[row.order_id].items.push({
+          product_id: row.product_id,
+          name: row.name,
+          quantity: row.quantity,
+          price: row.price,
+          image: row.image,
+        });
+      });
+
+      res.json(Object.values(ordersMap));
     }
   );
 });

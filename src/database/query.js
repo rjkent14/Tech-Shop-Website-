@@ -64,9 +64,10 @@ CREATE TABLE orders (
   total_amount REAL NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   delivery_address TEXT,
+  cancellation_reason TEXT,  -- ✅ NEW COLUMN
+  refund_reason TEXT,        -- ✅ NEW COLUMN
   FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
-
 -- Order Items
 CREATE TABLE order_items (
   order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
