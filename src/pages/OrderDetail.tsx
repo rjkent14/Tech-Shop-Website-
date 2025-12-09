@@ -82,7 +82,7 @@ const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ item, onClose }
                         </span>
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{item.name}</h2>
                         <p className="text-gray-600 mb-4">
-                          {item.description || "No description available for this product."}
+                          {item.description || "This high-quality tech product is carefully designed for excellent performance and reliability. Ideal for everyday use, work,entertainment, and productivity."}
                         </p>
                       </div>
                       <div className="text-right">
@@ -156,29 +156,6 @@ const OrderProductDetail: React.FC<OrderProductDetailProps> = ({ item, onClose }
                       <p className="text-blue-800 text-sm">
                         This product is part of your order. You can track the delivery status from your orders page.
                       </p>
-                    </div>
-                  </div>
-
-                  {/* Quantity Visualization */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Quantity Visualization</h3>
-                    <div className="flex flex-wrap items-center gap-3">
-                      {Array.from({ length: Math.min(item.quantity, 10) }).map((_, index) => (
-                        <div
-                          key={index}
-                          className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm text-sm md:text-base"
-                        >
-                          {index + 1}
-                        </div>
-                      ))}
-                      {item.quantity > 10 && (
-                        <div className="text-gray-500 font-medium text-sm md:text-base">
-                          +{item.quantity - 10} more units
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-4 text-sm text-gray-600">
-                      {item.quantity} unit{item.quantity !== 1 ? 's' : ''} ordered in total
                     </div>
                   </div>
 
