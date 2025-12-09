@@ -1059,7 +1059,7 @@ const AdminPage = () => {
 
       {/* Product Modal */}
       {showProductModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gray-100 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">
@@ -1166,14 +1166,7 @@ const AdminPage = () => {
                   Leave empty to use default image
                 </p>
                 <div className="mt-2">
-                  <img
-                    src={newProduct.image || "/Images/default-product.jpg"}
-                    alt="Preview"
-                    className="w-32 h-32 object-cover rounded border"
-                    onError={(e) => {
-                      e.currentTarget.src = "/Images/default-product.jpg";
-                    }}
-                  />
+                  
                 </div>
               </div>
             </div>
