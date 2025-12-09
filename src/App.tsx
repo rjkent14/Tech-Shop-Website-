@@ -219,18 +219,21 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header
-        cartItemsCount={cartItemsCount}
-        onCartClick={() => {
-          setIsCartOpen(true);
-          setCartClosing(false);
-        }}
-        isLoggedIn={isLoggedIn}
-        onProfileClick={() => setShowProfile(true)}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        productTypeCount={productTypeCount}
-      />
+     {/* Only show header if NOT login/signup */}
+  {route !== "login" && route !== "signup" && (
+    <Header
+      cartItemsCount={cartItemsCount}
+      onCartClick={() => {
+        setIsCartOpen(true);
+        setCartClosing(false);
+      }}
+      isLoggedIn={isLoggedIn}
+      onProfileClick={() => setShowProfile(true)}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      productTypeCount={productTypeCount}
+    />
+  )}
 
       <div className="flex-1 overflow-y-auto">
         <main className="transition-transform duration-300">
@@ -284,9 +287,9 @@ export default function App() {
           )}
         </main>
       </div>
-
-      <Footer />
-
+  {route !== "login" && route !== "signup" && <Footer />}
+      
+      
       {(isCartOpen || cartClosing) && (
         <ShoppingCart
           isOpen={isCartOpen}
