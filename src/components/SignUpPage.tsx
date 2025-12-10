@@ -42,7 +42,7 @@ export default function SignUpPage({ onLogin }: { onLogin?: () => void }) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background animate-fade-in">
       <form
-        className="bg-card p-3 rounded-xl shadow-lg w-full max-w-[250px] flex flex-col gap-4 border border-border animate-slide-up mx-auto"
+  className="bg-card p-6 rounded-lg shadow-lg max-w-[450px] flex flex-col gap-6 border border-border mx-auto"
         onSubmit={handleSubmit}
       >
         <div className="flex flex-col items-center mb-2 animate-bounce">
