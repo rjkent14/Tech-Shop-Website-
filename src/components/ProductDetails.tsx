@@ -166,16 +166,18 @@ export default function ProductDetails({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left Column - Image */}
-            <div className="space-y-6">
-              {/* Main Image */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border">
-                <div className="relative aspect-square">
-                  <ImageWithFallback
-                    src={productImage}
-                    alt={product.name}
-                    className="w-full h-full object-contain p-8"
-                  />
+       {/* Left Column - Image */}
+<div className="space-y-6">
+  {/* Main Image */}
+<div className="bg-gray rounded-2xl shadow-xl overflow-hidden border max-w-md max-h-[100px]">
+<div className="relative aspect-square p-8 max-w-[200px] max-h-[200px] mx-auto">
+        <div className="w-full h-full flex items-center justify-center">
+        <ImageWithFallback
+          src={productImage}
+          alt={product.name}
+          className="max-w-[70%] max-h-[70%] object-contain"
+        />
+      </div>
                   {discount > 0 && (
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-red-500 text-white px-3 py-1 text-sm font-bold">
