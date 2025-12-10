@@ -169,31 +169,30 @@ export default function ProductDetails({
        {/* Left Column - Image */}
 <div className="space-y-6">
   {/* Main Image */}
-<div className="bg-gray rounded-2xl shadow-xl overflow-hidden border max-w-md max-h-[100px]">
-<div className="relative aspect-square p-8 max-w-[200px] max-h-[200px] mx-auto">
-        <div className="w-full h-full flex items-center justify-center">
-        <ImageWithFallback
-          src={productImage}
-          alt={product.name}
-          className="max-w-[70%] max-h-[70%] object-contain"
-        />
+<div className="bg-white rounded-xl shadow-lg overflow-hidden border 
+                w-full max-w-[200px] h-[200px] 
+                flex items-center justify-center mx-auto">
+  <ImageWithFallback
+    src={productImage}
+    alt={product.name}
+    className="w-[80%] h-[80%] object-contain"
+  />
+    {discount > 0 && (
+      <div className="absolute top-3 left-3">
+        <Badge className="bg-red-500 text-white px-2 py-1 text-xs font-bold">
+          -{discount}% OFF
+        </Badge>
       </div>
-                  {discount > 0 && (
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-red-500 text-white px-3 py-1 text-sm font-bold">
-                        -{discount}% OFF
-                      </Badge>
-                    </div>
-                  )}
-                  {!product.inStock && (
-                    <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className="px-3 py-1">
-                        Out of Stock
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
+    )}
+    {!product.inStock && (
+      <div className="absolute top-3 right-3">
+        <Badge variant="secondary" className="px-2 py-1 text-xs">
+          Out of Stock
+        </Badge>
+      </div>
+    )}
+ 
+</div>
 
               {/* Features Banner */}
               <div className="grid grid-cols-2 gap-4 mt-6">
